@@ -18,17 +18,20 @@ class Conciliacao:
 
         self.frame1 = Frame(self.janela, width=800, height=400, bg='white', bd=5, relief=RIDGE).\
             grid(padx=100, pady=100)
-        Label(self.frame1, text='Selecione o Usuário', font=('arial', 16, 'bold')).\
-            place(x=400, y=150)
-        self.usuario = ttk.Combobox(self.frame1, font=('arial', 16, 'bold'), width=15)
+        Label(self.frame1, text='Login', font=('Impact', 35, 'bold'), fg='#6162FF', bg='white').\
+            place(x=440, y=130)
+        Label(self.frame1, text='Usuario', font=('Goudy old style', 15, 'bold'), fg='grey', bg='white'). \
+            place(x=400, y=220)
+
+        self.usuario = ttk.Combobox(self.frame1, font=('arial', 14, 'bold'), width=15)
         self.usuario['values'] = ('Leandro Peixoto', 'Mariclea Martini',
                                   'Michele Bernardino', 'Paulo França')
         # self.usuario.current(0)
         self.usuario.place(x=400, y=250)
 
-        self.btn_entrar = Button(self.frame1, text='Entrar', font=('arial', 16, 'bold'), width=10,
-                                 bd=5, command=self.tela_inicial)
-        self.btn_entrar.place(x=430, y=350)
+        self.btn_entrar = Button(self.frame1, text='Entrar', font=('Goudy old style', 15, 'bold'), width=10,
+                                 bd=0, bg='#6162FF', fg='white', command=self.tela_inicial)
+        self.btn_entrar.place(x=440, y=350)
 
     def tela_inicial(self):
         self.janela.withdraw()
