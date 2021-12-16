@@ -7,6 +7,9 @@ from dateutil.relativedelta import relativedelta
 import openpyxl
 import os
 import numpy as np
+from reportlab.pdfgen import canvas
+from PyPDF2 import PdfFileWriter, PdfFileReader
+from win32com import client
 
 
 class Conciliacao:
@@ -14,7 +17,7 @@ class Conciliacao:
     def __init__(self, janela):
         self.janela = janela
         self.janela.title('Conciliações')
-        self.janela.geometry('1000x600')
+        self.janela.geometry('1000x600+200+50')
 
         self.frame1 = Frame(self.janela, width=800, height=400, bg='white', bd=5, relief=RIDGE).\
             grid(padx=100, pady=100)
@@ -23,7 +26,9 @@ class Conciliacao:
         Label(self.frame1, text='Usuario', font=('Goudy old style', 15, 'bold'), fg='grey', bg='white'). \
             place(x=400, y=220)
 
-        self.usuario = ttk.Combobox(self.frame1, font=('arial', 14, 'bold'), width=15)
+        self.fonte = ('Goudy old style', 14)
+        self.janela.option_add('*TCombobox*Listbox.font', self.fonte)
+        self.usuario = ttk.Combobox(self.frame1, font=('arial', 14, 'bold'), width=17)
         self.usuario['values'] = ('Leandro Peixoto', 'Mariclea Martini',
                                   'Michele Bernardino', 'Paulo França')
         # self.usuario.current(0)
@@ -36,29 +41,134 @@ class Conciliacao:
     def tela_inicial(self):
         self.janela.withdraw()
         self.inicio = Toplevel()
-        self.inicio.geometry('1000x600')
+        self.inicio.geometry('1000x600+200+50')
 
-        self.tela_frame = Frame(self.inicio, width=800, height=400, bg='white')
-        self.tela_frame.place(x=100, y=100)
-        Label(self.tela_frame, text='Selecione a Competência', font=('arial', 16, 'bold')). \
-            place(x=270, y=50)
+        self.tela_frame = Frame(self.inicio, width=800, height=500, bg='white')
+        self.tela_frame.place(x=100, y=50)
+        Label(self.tela_frame, text='Selecione a Competência', fg='grey', bg='white', font=('Goudy old style', 15, 'bold')). \
+            place(x=280, y=50)
         lista = []
         for i in range(12):
             mes = datetime.today()
             data_limite = mes - relativedelta(months=i)
-            lista.append(data_limite.strftime('%m/%Y'))
+            lista.append(data_limite.strftime('%m.%Y'))
 
-        fonte = ('arial', 14)
+
         self.competencia = ttk.Combobox(self.tela_frame, font=('arial', 16, 'bold'), width=15)
         self.competencia['values'] = (lista)
-        self.inicio.option_add('*TCombobox*Listbox.font', fonte)
+        self.inicio.option_add('*TCombobox*Listbox.font', self.fonte)
         # self.competencia.current(0)
-        self.competencia.place(x=300, y=150)
-        self.verifica = Button(self.tela_frame, text='Gerar Relatório', bd=5, font=('arial', 16, 'bold'), command=self.validacao)
-        self.verifica.place(x=310, y=250)
+        self.competencia.place(x=300, y=100)
+        self.status = Button(self.tela_frame, width=15, text='Verificar', font=('Goudy old style', 15, 'bold'),
+                               bd=1, bg='#6162FF', fg='white', command=self.status)
+        self.status.place(x=200, y=160)
+
+        self.verifica = Button(self.tela_frame, width=15, text='Gerar Relatório', font=('Goudy old style', 15, 'bold'),
+                               bd=1, bg='#6162FF', fg='white', command=self.validacao)
+        self.verifica.place(x=400, y=160)
+
+        self.nome1 = Label(self.tela_frame, text='Leandro Peixoto', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white', anchor=W).place(x=200, y=270)
+        self.nome2 = Label(self.tela_frame, text='Mariclea Martini', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white', anchor=W).place(x=200, y=295)
+        self.nome3 = Label(self.tela_frame, text='Michele Bernardino', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white', anchor=W).place(x=200, y=320)
+
+        self.my_canvas1 = tkinter.Canvas(self.tela_frame, width=17, height=17, bg='white')  # Create 200x200 Canvas widget
+        self.my_canvas1.place(x=390, y=272)
+        self.my_oval1 = self.my_canvas1.create_oval(2, 2, 16, 16)
+
+        self.my_canvas2 = tkinter.Canvas(self.tela_frame, width=17, height=17, bg='white', relief='groove')  # Create 200x200 Canvas widget
+        self.my_canvas2.place(x=390, y=297)
+        self.my_oval2 = self.my_canvas2.create_oval(2, 2, 16, 16)
+        # self.my_canvas2.itemconfig(self.my_oval2, fill="red")
+        self.my_canvas3 = tkinter.Canvas(self.tela_frame, width=17, height=17, bg='white',
+                                    relief='groove')  # Create 200x200 Canvas widget
+        self.my_canvas3.place(x=390, y=322)
+        self.my_oval3 = self.my_canvas3.create_oval(2, 2, 16, 16)
+        # my_canvas3.itemconfig(my_oval3, fill="green")
+
+        self.status1 = Label(self.tela_frame, text='', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white')
+        self.status1.place(x=410, y=270)
+        self.status2 = Label(self.tela_frame, text='', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white')
+        self.status2.place(x=410, y=295)
+        self.status3 = Label(self.tela_frame, text='', font=('Goudy old style', 12), relief='groove',
+                             width=20, height=1, bg='white')
+        self.status3.place(x=410, y=320)
+
+        def assina_gestor():
+            self.caminho = 'G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_' + self.competencia.get()[3:7] + \
+                           '\\' + self.competencia.get()
+            c = canvas.Canvas('watermark.pdf')
+            # Draw the image at x, y. I positioned the x,y to be where i like here
+            c.drawImage(self.usuario.get() + '.png', 350, 50, 150, 100,
+                        mask='auto')
+            c.save()
+            watermark = PdfFileReader(
+                open("C:\\Users\loliveira\PycharmProjects\Excel\\watermark.pdf", "rb"))
+
+            lista = []
+            for file in os.listdir(self.caminho):
+                if file.endswith(".pdf"):
+                    output_file = PdfFileWriter()
+                    with open(self.caminho + '\\' + file, "rb") as f:
+                        input_file = PdfFileReader(f, "rb")
+                        # Number of pages in input document
+                        page_count = input_file.getNumPages()
+
+                        # Go through all the input file pages to add a watermark to them
+                        for page_number in range(page_count):
+                            input_page = input_file.getPage(page_number)
+                            if page_number == page_count - 1:
+                                input_page.mergePage(watermark.getPage(0))
+                            output_file.addPage(input_page)
+
+                        with open(self.caminho + '\\' + file[8:], "wb") as outputStream:
+                            output_file.write(outputStream)
+                    os.remove(self.caminho + '\\' + file)
+
+
+        if self.usuario.get() == 'Paulo França':
+            self.gestor = Button(self.tela_frame, text='Assinar', font=('Goudy old style', 15, 'bold'),
+            width=10, bd=1, bg='#6162FF', fg='white', command=assina_gestor).place(x=330, y=380)
+
+
+
+    def status(self):
+        with open('dados.txt', 'r') as f:
+            lines = f.readlines()
+            self.status1.config(text='')
+            self.status2.config(text='')
+            self.status3.config(text='')
+            for i in lines:
+                i = i.split(';')
+                if i[0] == self.competencia.get() and i[1] == 'Leandro Peixoto' and i[2].strip() == 'OK':
+                    self.status1.config(text='Validado', bg='light green')
+                    self.my_canvas1.itemconfig(self.my_oval1, fill="green")
+                elif i[0] == self.competencia.get() and i[1] == 'Mariclea Martini' and i[2].strip() == 'OK':
+                    self.status2.config(text='Validado', bg='light green')
+                    self.my_canvas2.itemconfig(self.my_oval2, fill="green")
+                elif i[0] == self.competencia.get() and i[1] == 'Michele Bernardino' and i[2].strip() == 'OK':
+                    self.status3.config(text='Validado', bg='light green')
+                    self.my_canvas3.itemconfig(self.my_oval3, fill="green")
+                else:
+                    if self.status1.cget('text') == '':
+                        self.status1.config(text='Validação Pendente', bg='light coral')
+                        self.my_canvas1.itemconfig(self.my_oval1, fill="red")
+                    if self.status2.cget('text') == '':
+                        self.status2.config(text='Validação Pendente', bg='light coral')
+                        self.my_canvas2.itemconfig(self.my_oval2, fill="red")
+                    if self.status3.cget('text') == '':
+                        self.status3.config(text='Validação Pendente', bg='light coral')
+                        self.my_canvas3.itemconfig(self.my_oval3, fill="red")
+
 
     def validacao(self):
-        pasta1 = os.listdir('G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_2021\\11.2021')
+        self.caminho = 'G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_' + self.competencia.get()[3:7] + \
+                       '\\' + self.competencia.get()
+        pasta1 = os.listdir(self.caminho)
 
         lista = [[], [], [], [], []]
 
@@ -66,30 +176,33 @@ class Conciliacao:
             if i.startswith('~') == True:
                 pasta1.remove(i)
 
-        for i in pasta1:
-            wb = openpyxl.load_workbook('G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_2021\\11.2021\\' + i,
-                                        read_only=True)
-            sheets = wb.sheetnames
-            ws = wb[sheets[0]]
-            try:
-                conta = ws['A2'].value.split()
-            except:
-                conta = ['', '']
-            valor_deb = ws['C5'].value
-            valor_cred = ws['D5'].value
-            data = ws['A5'].value.strftime('%m/%Y')
-            lista[0].append(conta[1])
-            lista[1].append(data)
-            lista[2].append(valor_deb)
-            lista[3].append(valor_cred)
 
-            wb.close()
+        for i in pasta1:
+            if i.endswith('.xlsx'):
+                wb = openpyxl.load_workbook(self.caminho + '\\' + i, read_only=True)
+                sheets = wb.sheetnames
+                ws = wb[sheets[0]]
+                try:
+                    conta = ws['A2'].value.split()
+                except:
+                    conta = ['', '']
+                valor_deb = ws['C5'].value
+                valor_cred = ws['D5'].value
+                data = ws['A5'].value.strftime('%m/%Y')
+                lista[0].append(conta[1])
+                lista[1].append(data)
+                lista[2].append(valor_deb)
+                lista[3].append(valor_cred)
+
+                wb.close()
 
         data = pd.DataFrame(lista).T
 
         data.columns = ['Conta', 'Data', 'Debito', 'Credito', 'Saldo']
 
-        dados = pd.read_excel('balteste.xlsx')
+        dados = pd.read_excel('G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_' + self.competencia.get()[3:7] +
+                              '\BALANCETES\SOCIETÁRIOS\Balancete 112021.xlsx',
+                      skiprows=12)
         dados = pd.DataFrame(dados)
 
         apoio = pd.read_excel('contas.xlsx')
@@ -99,7 +212,7 @@ class Conciliacao:
             for index, row in dados.iterrows():
                 if row1['Conta'] == row['Conta CSPE']:
                     # data.insert(3, 'Saldo', '')
-                    data['Saldo'].loc[index1] = dados.loc[index, 'Saldo Acumulado']
+                    data['Saldo'].loc[index1] = dados.loc[index, ' Saldo Acumulado']
 
         data[['Debito', 'Credito', 'Saldo']] = data[['Debito', 'Credito', 'Saldo']].apply(pd.to_numeric)
 
@@ -112,19 +225,19 @@ class Conciliacao:
 
         data['Status'] = np.where(data['Resultado'] != 0, 'Diferença de Valor', 'OK')
 
-        # data = data.loc[data['Usuario'] == self.usuario.get()]
+        data = data.loc[data['Usuario'] == self.usuario.get()]
 
 
-        data.to_excel('teste.xlsx', index=False)
+        # data.to_excel('teste.xlsx', index=False)
 
         self.data = data
-        tkinter.messagebox.showinfo('', 'Arquivo Validado com Sucesso')
+
         self.relatorio()
 
     def relatorio(self):
         self.inicio.withdraw()
         self.relat = Toplevel()
-        self.relat.geometry('1000x600')
+        self.relat.geometry('1000x600+200+50')
 
         self.val_frame = Frame(self.relat, width=800, height=400, bg='white')
         self.val_frame.place(x=100, y=100)
@@ -171,6 +284,11 @@ class Conciliacao:
 
         nf_tree['show'] = 'headings'
 
+        self.btn_validar = Button(self.relat, text='Revalidar', font=16)
+        self.btn_validar.place(x=350, y=500)
+        self.btn_assinar = Button(self.relat, text='Assinar', font=16, command=self.assinar)
+        self.btn_assinar.place(x=550, y=500)
+
         # inserir dados do banco no treeview
         def inserir_tree(lista):
             nf_tree.delete(*nf_tree.get_children())
@@ -192,10 +310,85 @@ class Conciliacao:
             verinfo2 = nf_tree.focus()
             dados2 = nf_tree.item(verinfo2)
             row = dados2['values']
-            os.startfile('G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_2021\\11.2021' +
-                         '\\' + 'Conta '+ row[0].replace('.', '') + '.xlsx')
+            os.startfile(self.caminho + '\\' + 'Conta '+ row[0].replace('.', '') + '.xlsx')
 
         nf_tree.bind('<Double-Button>', NotasInfo2)
+
+    def assinar(self):
+        lista3 = []
+
+        for i in self.data['Conta']:
+            conta = 'Conta ' + i.replace('.', '') + '.xlsx'
+            lista3.append(conta)
+
+
+        # Create the watermark from an image
+        c = canvas.Canvas('watermark.pdf')
+        # Draw the image at x, y. I positioned the x,y to be where i like here
+        c.drawImage(self.usuario.get() + '.png', 40, 50, 150, 100,
+                    mask='auto')
+        c.save()
+
+        for i in lista3:
+
+            # Open Microsoft Excel
+            excel = client.Dispatch("Excel.Application")
+
+            # Read Excel File
+            sheets = excel.Workbooks.Open('C:\\Users\loliveira\PycharmProjects\Excel\\' + i)
+            work_sheets = sheets.Worksheets[0]
+
+            # Convert into PDF File
+            path = 'C:\\Users\loliveira\PycharmProjects\Excel\\' + 'teste ' + i.replace('.xlsx', '.pdf')
+
+            work_sheets.ExportAsFixedFormat(0, path)
+
+
+            # Get the watermark file you just created
+            watermark = PdfFileReader(open("watermark.pdf", "rb"))
+            # Get our files ready
+
+            output = PdfFileWriter()
+
+            with open(path, "rb") as provisorio:
+                input = PdfFileReader(provisorio)
+                number_of_pages = input.getNumPages()
+
+
+                for current_page_number in range(number_of_pages):
+                    page = input.getPage(current_page_number)
+                    if page.extractText() != "":
+                        output.addPage(page)
+
+                page_count = output.getNumPages()
+                # Go through all the input file pages to add a watermark to them
+                for page_number in range(page_count):
+                    input_page = output.getPage(page_number)
+                    if page_number == page_count - 1:
+                        input_page.mergePage(watermark.getPage(0))
+                    output2 = PdfFileWriter()
+                    output2.addPage(input_page)
+
+                    # finally, write "output" to document-output.pdf
+                    with open(self.caminho + '\\' + 'pendente' + i.replace('.xlsx', '.pdf'), "wb") as outputStream:
+                        output2.write(outputStream)
+
+
+            os.remove(path)
+
+        valida = self.data['Status'].unique()
+
+        if 'OK' in valida and len(valida) == 1:
+            print('ok')
+
+        adicionar = [self.competencia.get(), self.usuario.get(), 'OK']
+        adicionar = ';'.join(adicionar)
+
+        with open('dados.txt', 'a') as f:
+            f.write(f'\n{adicionar}')
+
+        tkinter.messagebox.showinfo('', 'Arquivos assinados com Sucesso!')
+
 
 if __name__=='__main__':
     janela = Tk()
