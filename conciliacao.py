@@ -20,11 +20,11 @@ class Conciliacao:
             grid(padx=100, pady=100)
         Label(self.frame1, text='Selecione o Usuário', font=('arial', 16, 'bold')).\
             place(x=400, y=150)
-        self.usuario = ttk.Combobox(self.frame1, font=('arial', 16, 'bold'), width=25)
+        self.usuario = ttk.Combobox(self.frame1, font=('arial', 16, 'bold'), width=15)
         self.usuario['values'] = ('Leandro Peixoto', 'Mariclea Martini',
                                   'Michele Bernardino', 'Paulo França')
         # self.usuario.current(0)
-        self.usuario.place(x=350, y=250)
+        self.usuario.place(x=400, y=250)
 
         self.btn_entrar = Button(self.frame1, text='Entrar', font=('arial', 16, 'bold'), width=10,
                                  bd=5, command=self.tela_inicial)
@@ -50,12 +50,13 @@ class Conciliacao:
         self.competencia['values'] = (lista)
         self.inicio.option_add('*TCombobox*Listbox.font', fonte)
         # self.competencia.current(0)
-        self.competencia.place(x=300, y=100)
-        self.verifica = Button(self.tela_frame, text='Validar', font=('arial', 16, 'bold'), command=self.validacao)
-        self.verifica.place(x=300, y=150)
+        self.competencia.place(x=300, y=150)
+        self.verifica = Button(self.tela_frame, text='Gerar Relatório', bd=5, font=('arial', 16, 'bold'), command=self.validacao)
+        self.verifica.place(x=310, y=250)
 
     def validacao(self):
         pasta1 = os.listdir('G:\GECOT\CONCILIAÇÕES CONTÁBEIS\CONCILIAÇÕES_2021\\11.2021')
+
         lista = [[], [], [], [], []]
 
         for i in pasta1[::-1]:
